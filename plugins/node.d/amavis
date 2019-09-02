@@ -78,25 +78,30 @@ GPLv2
 =cut
 
 AMAVIS_LOG=${amavislog:-/var/log/mail/mail.info}
-LOGTAIL=${logtail:-logtail}
+LOGTAIL=${logtail:-$(which logtail)}
 STATEFILE=$MUNIN_PLUGSTATE/amavis.offset
 mktemp_command="${mktemp_command:-/bin/mktemp}"
 
 if [ "$1" = "autoconf" ]; then
-	if [ -f "${AMAVIS_LOG}" ] && [ -n "${LOGTAIL}" ] && [ -x "${LOGTAIL}" ] ; then
-		echo yes
-		exit 0
+	if [ ! -f "$AMAVIS_LOG" ]; then
+		echo "no (file '$AMAVIS_LOG' not found)"
+	elif [ -z "$LOGTAIL" ]; then
+		echo "no (executable 'logtail' not found)"
+	elif [ ! -x "$LOGTAIL" ]; then
+		echo "no ('$LOGTAIL' is not executable)"
+	elif ! which amavisd-new amavisd >/dev/null; then
+		echo "no (exeuctable 'amavisd' or 'amavisd-new' not found)"
 	else
-		echo "no (command $LOGTAIL or file $AMAVIS_LOG not found)"
-		exit 0
+		echo yes
 	fi
+	exit 0
 fi
 
 # Try tailing a random file to check how arguments are passed
 ARGS=0
 "$LOGTAIL" /etc/hosts 2>/dev/null >/dev/null
 if [ $? = 66 ]; then
-    if [ ! -n "$logtail" ]; then
+    if [ -z "$logtail" ]; then
 	ARGS=1
     fi
 fi

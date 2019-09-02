@@ -51,7 +51,6 @@ use Munin::Plugin;
 
 my $pos;
 my $delivered;
-my $rejects = ();
 my $LOGDIR  = (defined($ENV{'logdir'}) ? $ENV{'logdir'} : '/var/log');
 my $LOGFILE = (defined($ENV{'logdir'}) ? $ENV{'logfile'} : 'mail.log');
 
@@ -157,7 +156,7 @@ sub parseLogfile
 
 	my ($logfd, $reset) = tail_open($fname, $start);
 
-    while (tell($logfd) < $stop) 
+    while (tell($logfd) < $stop)
     {
 	my $line = <$logfd>;
 	chomp ($line);
@@ -165,7 +164,7 @@ sub parseLogfile
 	if ($line =~ / to=.*, status=sent /)
 	{
 	    $delivered++;
-	} 
+	}
 	elsif ($line =~ /postfix\/smtpd.*proxy-reject: \S+ (\S+)/ ||
 	       $line =~ /postfix\/smtpd.*reject: \S+ \S+ \S+ (\S+)/ ||
 	       $line =~ /postfix\/postscreen.*reject: \S+ \S+ \S+ (\S+)/ ||

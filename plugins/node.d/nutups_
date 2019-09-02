@@ -44,7 +44,7 @@ voltages() {
 			echo "${i}.min 0"
 		done
 	else
-		"$UPSC" "$UPS" | sed -n '/volt/{
+		"$UPSC" "$UPS" | sed -n '/^[^:]*volt/{
 					s/://
 					/nominal/s/.* /nominal.value /
 					/voltage/s/\.[^ ]*/.value/
@@ -66,7 +66,7 @@ charge() {
 			echo "${i}.min 0"
 		done
 	else
-		"$UPSC" "$UPS" | sed -n '/charge/{
+		"$UPSC" "$UPS" | sed -n '/^[^:]*charge/{
 					s/^[^:]*\.//g
 					s/:/.value/
 					p
@@ -81,15 +81,19 @@ charge() {
 frequency() {
 	if [ "$1" = "config" ]; then
 
-		echo "graph_title $UPS input AC frequency"
+		echo "graph_title $UPS AC frequency"
 		echo "graph_args --base 1000 -l 0"
 		echo "graph_vlabel frequency 1/s"
-		echo "acfreq.label AC frequency"
-		echo "acfreq.type GAUGE"
-		echo "acfreq.max 100"
-		echo "acfreq.min 5"
+		echo "inputfreq.label Input AC frequency"
+		echo "inputfreq.type GAUGE"
+		echo "inputfreq.max 100"
+		echo "inputfreq.min 5"
+		echo "outputfreq.label Output AC frequency"
+		echo "outputfreq.type GAUGE"
+		echo "outputfreq.max 100"
+		echo "outputfreq.min 5"
 	else
-		"$UPSC" "$UPS" | sed -n '/freq/{s/.*:/acfreq.value/;p}'
+		"$UPSC" "$UPS" | sed -n '/^[^:]*\(input\|output\)\.frequency:/{s/.*\(input\|output\).*:/\1freq.value/;p}'
 	fi
 }
 
@@ -104,7 +108,7 @@ current() {
 		echo "current.max 100"
 		echo "current.min 0"
 	else
-		"$UPSC" "$UPS" | sed -n '/current/{s/.*:/current.value/;p}'
+		"$UPSC" "$UPS" | sed -n '/^[^:]*current/{s/.*:/current.value/;p}'
 	fi
 }
 

@@ -42,9 +42,8 @@ get_warning () {
 }
 
 
-# Usage: 
-#   warning=${warning:-92}
-#   print_warning "$name"
+# Usage:
+#   warning=${warning:-92} print_warning "$name"
 
 print_warning () {
     warnout=$(get_warning $1 $2)
@@ -76,6 +75,10 @@ get_critical () {
     fi
 }
 
+
+# Usage:
+#   critical=${critical:-98} print_critical "$name"
+
 print_critical () {
     critout=$(get_critical $1 $2)
     if [ -n "${critout}" ]; then
@@ -87,7 +90,7 @@ print_critical () {
 # the threshold string adjusted for percentages if percent sizes are present.
 # If not, the threshold is left unchanged.
 # Usage:
-#   adjust_threshold "50%:50%" 200 
+#   adjust_threshold "50%:50%" 200
 # Returns:
 #   100:100
 #
@@ -109,10 +112,10 @@ adjust_threshold () {
 # for criticals (see the second argument to get_critical).
 #
 # This is a convenience function for plugins that don't need to do anything
-# special for warnings vs criticals.
+# special for warnings vs. criticals.
 #
 # Usage:
-#   warning='20' critical='40' print_thresholds user
+#   warning=${warning:-20} critical=${critical:-40} print_thresholds user
 # Returns:
 #   user.warning 20
 #   user.critical 40

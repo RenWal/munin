@@ -152,6 +152,15 @@ sub process_request
 }
 
 
+# This method is used by Net::Server for retrieving default values (in case they are not specified
+# in the given "conf_file").
+sub default_values {
+    return {
+        port => 4949,
+    };
+}
+
+
 sub _process_command_line {
     my ($session, $cmd_line) = @_;
 
@@ -328,7 +337,7 @@ sub _print_service {
 
 sub _list_services {
     my ($session, $node) = @_;
-    $node ||= $config->{fqdn};
+    $node ||= lc($config->{fqdn});
     if (keys %nodes == 1 && ! exists $nodes{$node}) {
 	    # Only one node. Naming mismatch. Just give the use what he wants.
 	    ($node) = keys %nodes;

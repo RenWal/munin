@@ -90,10 +90,20 @@ unless (-d $SPOOLDIR) {
 		or LOGCROAK("Cannot create '$SPOOLDIR': $!");
 }
 
+my $process_name = "main";
+
 my $sock = new IO::Socket::INET(
 	PeerAddr        => "$host",
 	Proto   => 'tcp'
-) || LOGCROAK("Error creating socket: $!");
+);
+if (!$sock) {
+	print STDERR "[$$][$process_name] Failed to connect to munin-node - trying again in a few seconds ...\n" if $verbose;
+	sleep 20;
+	$sock = new IO::Socket::INET(
+		PeerAddr => "$host",
+		Proto => 'tcp'
+	) || LOGCROAK("Error connecting to munin node ($host): $!");
+}
 my $nodeheader = <$sock>;
 print STDERR "[sock][>] nodes\n" if $debug;
 print $sock "nodes\n";
@@ -131,8 +141,6 @@ foreach my $node (@nodes) {
 
 $0 = "munin-asyncd [$metahostname] [idle]";
 
-my $process_name = "main";
-
 my $plugins = {};
 {
 	INFO("[$$][$process_name] Reading config from $host");
@@ -158,7 +166,9 @@ my $plugins = {};
 				"$SPOOLDIR/$node/munin-daemon.list",
 				"w",
 			);
-			print $fh_list $plugins_line;
+			my $sanitised_plugins_line = $plugins_line;
+			$sanitised_plugins_line =~ s/[^_A-Za-z0-9 ]/_/g;
+			print $fh_list $sanitised_plugins_line;
 			print $fh_list "\n";
 		}
 
@@ -191,7 +201,13 @@ MAIN: while($keepgoing) {
 
 	my $process_name_orig = $process_name;
 
-	my $when_next = $when + $timeout; # wake up at least every $timeout sec
+	# start the next run close to the end of a munin-node update operation
+	# (i.e. try to avoid overlapping activities)
+	my $when_next = int((int($when / $minrate) + 0.75) * $minrate);
+	while ($when_next <= $when) {
+		$when_next = $when_next + $minrate;
+	}
+
 	foreach my $node (@nodes)
 	{
 		my $sock;

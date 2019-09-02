@@ -23,8 +23,8 @@ sub new
     # Set defaults
     $args{servicedir} ||= "$Munin::Common::Defaults::MUNIN_CONFDIR/plugins";
 
-    $args{defuser}  ||= getpwnam $Munin::Common::Defaults::MUNIN_PLUGINUSER;
-    $args{defgroup} ||= getgrnam $Munin::Common::Defaults::MUNIN_GROUP;
+    $args{defuser}  = getpwnam $Munin::Common::Defaults::MUNIN_PLUGINUSER unless defined($args{defuser});
+    $args{defgroup} = getgrnam $Munin::Common::Defaults::MUNIN_GROUP unless defined($args{defgroup});
 
     $args{timeout}  ||= 60; # Default transaction timeout : 1 min
     $args{pidebug}  ||= 0;
@@ -92,12 +92,18 @@ sub prepare_plugin_environment
 
     # Some locales use "," as decimal separator. This can mess up a lot
     # of plugins.
-    $ENV{LC_ALL} = 'C';
+    $ENV{LC_ALL} = 'C.UTF-8';
 
     # LC_ALL should be enough, but some plugins don't follow specs (#1014)
-    $ENV{LANG} = 'C';
+    $ENV{LANG} = 'C.UTF-8';
 
-    # PATH should be *very* sane by default. Can be overridden via 
+    # Force UTF-8 encoding for stdout in Python3. This is only relevant for
+    # Python3 before 3.7 (which will use UTF-8 anyway, if possible).
+    # This override allows python3-based plugins as well as any indrectly
+    # executed python3-based commands to output UTF-8 characters.
+    $ENV{PYTHONIOENCODING} = 'utf8:replace';
+
+    # PATH should be *very* sane by default. Can be overridden via
     # config file if needed (Closes #863 and #1128).
     $ENV{PATH} = '/usr/sbin:/usr/bin:/sbin:/bin';
 
@@ -372,7 +378,7 @@ Runs miscellaneous tests on $file_name in the service directory, to try and
 establish whether it is a runnable service.
 
 =item B<list>
-  
+
   my @services = $services->list;
 
 Returns a list of all the runnable services in the directory.

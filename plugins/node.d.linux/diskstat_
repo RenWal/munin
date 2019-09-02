@@ -377,7 +377,7 @@ sub calculate_and_print_values {
 
     my $average_rq_size_in_kb
         = $total_ios
-        ? ( $rd_sectors + $wr_sectors ) 
+        ? ( $rd_sectors + $wr_sectors )
         * $bytes_per_sector / 1024
         / $total_ios
         : 0;
@@ -484,8 +484,8 @@ sub read_sysfs {
 
         my @elems = split /\s+/, $line;
 
-        croak "'$stats_file' doesn't contain exactly 11 values. Aborting"
-            if ( @elems != 11 );
+        croak "'$stats_file' contains less than 11 values. Aborting"
+            if ( @elems < 11 );
 
         # Translate the devicename back before storing the information
         $cur_device =~ tr#!#/#;
